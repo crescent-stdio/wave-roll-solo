@@ -1,0 +1,36 @@
+# Source files
+src/**
+webview/**
+
+# Development files
+*.ts
+!dist/**/*.js
+tsconfig.json
+esbuild.mjs
+
+# Test files
+tests/**
+**/*.test.ts
+**/*.spec.ts
+
+# Node modules (dependencies are bundled)
+node_modules/**
+
+# Git files
+.git/**
+.gitignore
+
+# Editor/IDE
+.vscode/**
+*.code-workspace
+
+# Build artifacts
+*.map
+*.tsbuildinfo
+
+# Misc
+*.md
+!README.md
+.eslintrc*
+.prettierrc*
+
