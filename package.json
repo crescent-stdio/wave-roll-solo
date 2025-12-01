@@ -1,7 +1,7 @@
 {
   "name": "wave-roll-solo",
   "displayName": "Wave Roll Solo - Single MIDI Player",
-  "description": "A lightweight single MIDI file viewer powered by Wave Roll engine.",
+  "description": "VS Code Extension for MIDI Piano-Roll Visualization and Playback (Powered by wave-roll)",
   "publisher": "crescent-stdio",
   "version": "0.0.2",
   "engines": {
