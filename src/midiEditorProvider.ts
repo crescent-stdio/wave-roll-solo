@@ -130,6 +130,17 @@ export class MidiEditorProvider
             }
             break;
 
+          case "export-midi":
+            // Handle MIDI export from webview
+            {
+              const { data: base64Data, filename } = message as {
+                data: string;
+                filename: string;
+              };
+              await this.handleMidiExport(document.uri, base64Data, filename);
+            }
+            break;
+
           case "error":
             vscode.window.showErrorMessage(
               `Wave Roll Solo: ${message.message}`
@@ -140,6 +151,78 @@ export class MidiEditorProvider
       undefined,
       this.context.subscriptions
     );
+  }
+
+  /**
+   * Handles MIDI export: saves the file to the same directory as the original.
+   * If a file with the same name exists, appends a number (e.g., song_120bpm(1).mid).
+   */
+  private async handleMidiExport(
+    originalUri: vscode.Uri,
+    base64Data: string,
+    suggestedFilename: string
+  ): Promise<void> {
+    try {
+      // Convert base64 to Uint8Array
+      const midiBytes = Buffer.from(base64Data, "base64");
+
+      // Get the directory of the original file
+      const originalDir = vscode.Uri.joinPath(originalUri, "..");
+
+      // Find a unique filename (auto-increment if exists)
+      const targetUri = await this.getUniqueFileUri(originalDir, suggestedFilename);
+
+      // Write the file
+      await vscode.workspace.fs.writeFile(targetUri, midiBytes);
+
+      // Show success notification with the saved path
+      const relativePath = vscode.workspace.asRelativePath(targetUri);
+      vscode.window.showInformationMessage(
+        `MIDI exported: ${relativePath}`
+      );
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      vscode.window.showErrorMessage(
+        `Failed to export MIDI: ${errorMsg}`
+      );
+    }
+  }
+
+  /**
+   * Gets a unique file URI by appending (1), (2), etc. if the file already exists.
+   */
+  private async getUniqueFileUri(
+    directory: vscode.Uri,
+    filename: string
+  ): Promise<vscode.Uri> {
+    // Parse filename to base and extension
+    const lastDotIndex = filename.lastIndexOf(".");
+    const baseName = lastDotIndex > 0 ? filename.slice(0, lastDotIndex) : filename;
+    const extension = lastDotIndex > 0 ? filename.slice(lastDotIndex) : "";
+
+    // Try original filename first
+    let targetUri = vscode.Uri.joinPath(directory, filename);
+    let counter = 0;
+
+    while (await this.fileExists(targetUri)) {
+      counter++;
+      const newFilename = `${baseName}(${counter})${extension}`;
+      targetUri = vscode.Uri.joinPath(directory, newFilename);
+    }
+
+    return targetUri;
+  }
+
+  /**
+   * Checks if a file exists at the given URI.
+   */
+  private async fileExists(uri: vscode.Uri): Promise<boolean> {
+    try {
+      await vscode.workspace.fs.stat(uri);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**

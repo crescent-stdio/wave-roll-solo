@@ -1,5 +1,5 @@
 import { createWaveRollPlayer } from "wave-roll";
-import type { AppearanceSettings } from "wave-roll";
+import type { AppearanceSettings, MidiExportOptions } from "wave-roll";
 
 // Declare VS Code API type
 declare function acquireVsCodeApi(): {
@@ -82,28 +82,22 @@ async function initializeWaveRollPlayer(
   midiBytes: Uint8Array,
   filename: string
 ): Promise<void> {
-  console.log("[WaveRoll] initializeWaveRollPlayer called");
-
   if (!waveRollContainer) {
     throw new Error("WaveRoll container not found");
   }
 
   // Cleanup previous instance and blob URL
   if (playerInstance) {
-    console.log("[WaveRoll] Disposing previous player instance");
     playerInstance.dispose();
     playerInstance = null;
   }
   revokeBlobUrl();
 
   // Create Blob URL from MIDI bytes
-  console.log("[WaveRoll] Creating Blob URL from MIDI bytes...");
   currentBlobUrl = createMidiBlobUrl(midiBytes);
-  console.log("[WaveRoll] Blob URL created:", currentBlobUrl);
 
   // Create the WaveRoll player with the Blob URL
   // Use soloMode to hide evaluation UI, file sections, and waveform band
-  console.log("[WaveRoll] Creating WaveRoll player...");
   try {
     playerInstance = await createWaveRollPlayer(
       waveRollContainer,
@@ -118,6 +112,8 @@ async function initializeWaveRollPlayer(
         soloMode: true,
         // Use WebGL for better compatibility in VS Code webview environment
         pianoRoll: { rendererPreference: 'webgl' },
+        // Use custom export handler to save MIDI to original file location
+        midiExport: createMidiExportOptions(),
       }
     );
 
@@ -126,8 +122,6 @@ async function initializeWaveRollPlayer(
       canAddFiles: false,
       canRemoveFiles: false,
     });
-
-    console.log("[WaveRoll] WaveRoll player created successfully!");
 
     // Request saved appearance settings from extension
     requestSavedSettings();
@@ -154,7 +148,6 @@ function handleMessage(event: MessageEvent): void {
     case "settings-loaded":
       // Apply saved appearance settings if available
       if (message.settings && playerInstance) {
-        console.log("[WaveRoll] Applying saved appearance settings:", message.settings);
         playerInstance.applyAppearanceSettings(message.settings);
       }
       pendingSettingsRequest = false;
@@ -197,9 +190,46 @@ function setupAppearanceChangeListener(): void {
     // Don't save if we're still loading initial settings
     if (pendingSettingsRequest) return;
 
-    console.log("[WaveRoll] Appearance changed, saving:", settings);
     saveAppearanceSettings(settings);
   });
+}
+
+/**
+ * Converts a Blob to Base64 string.
+ */
+async function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      // Remove the data URL prefix (e.g., "data:audio/midi;base64,")
+      const base64 = dataUrl.split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * Creates MIDI export options for VS Code extension integration.
+ * Uses custom mode to send the exported MIDI to the extension for saving.
+ */
+function createMidiExportOptions(): MidiExportOptions {
+  return {
+    mode: "custom",
+    onExport: async (blob: Blob, filename: string) => {
+      // Convert blob to base64 for sending via postMessage
+      const base64Data = await blobToBase64(blob);
+      
+      // Send to extension for saving to original file location
+      vscode.postMessage({
+        type: "export-midi",
+        data: base64Data,
+        filename,
+      });
+    },
+  };
 }
 
 /**
@@ -209,9 +239,6 @@ async function handleMidiData(
   base64Data: string,
   filename: string
 ): Promise<void> {
-  console.log("[WaveRoll] handleMidiData called, filename:", filename);
-  console.log("[WaveRoll] base64Data length:", base64Data.length);
-
   try {
     // Show the container before initializing (so it has dimensions)
     setStatus("ready");
@@ -224,14 +251,10 @@ async function handleMidiData(
     });
 
     // Decode base64 to bytes
-    console.log("[WaveRoll] Decoding base64 to Uint8Array...");
     const midiBytes = decodeBase64ToUint8Array(base64Data);
-    console.log("[WaveRoll] Decoded MIDI bytes length:", midiBytes.length);
 
     // Initialize the WaveRoll player
-    console.log("[WaveRoll] Initializing WaveRoll player...");
     await initializeWaveRollPlayer(midiBytes, filename);
-    console.log("[WaveRoll] WaveRoll player initialized successfully!");
   } catch (error) {
     console.error("[WaveRoll] Error in handleMidiData:", error);
     const errorMsg =
