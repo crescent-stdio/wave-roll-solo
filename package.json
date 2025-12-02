@@ -4,6 +4,10 @@
   "description": "VS Code Extension for MIDI Piano-Roll Visualization and Playback (Powered by wave-roll)",
   "publisher": "crescent-stdio",
   "version": "0.0.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crescent-stdio/wave-roll-solo"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -12,6 +16,7 @@
     "Other"
   ],
   "main": "./dist/extension/extension.js",
+  "activationEvents": [],
   "contributes": {
     "customEditors": [
       {
@@ -45,6 +50,6 @@
   "dependencies": {
     "@tonejs/midi": "^2.0.28",
     "tone": "^15.1.22",
-    "wave-roll": "0.3.0-next.1"
+    "wave-roll": "^0.3.0"
   }
 }
