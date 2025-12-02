@@ -3,7 +3,8 @@
   "displayName": "Wave Roll Solo - Single MIDI Player",
   "description": "VS Code Extension for MIDI Piano-Roll Visualization and Playback (Powered by wave-roll)",
   "publisher": "crescent-stdio",
-  "version": "0.0.2",
+  "version": "0.0.3",
+  "icon": "icon.jpg",
   "repository": {
     "type": "git",
     "url": "https://github.com/crescent-stdio/wave-roll-solo"
