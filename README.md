@@ -6,6 +6,9 @@ Built on top of [**WaveRoll**](https://github.com/crescent-stdio/wave-roll) - an
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
+![Screenshot of WaveRoll Solo](./wave-roll-solo.png)
+
+
 ## Features
 
 - **Piano Roll Visualization**: View MIDI files as an interactive piano roll display powered by the [wave-roll](https://www.npmjs.com/package/wave-roll) library
