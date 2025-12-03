@@ -52,10 +52,10 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Package extension
-        run: pnpm dlx @vscode/vsce package
+        run: pnpm dlx @vscode/vsce package --no-dependencies
 
       - name: Publish to VS Code Marketplace
-        run: pnpm dlx @vscode/vsce publish --skip-duplicate
+        run: pnpm dlx @vscode/vsce publish --no-dependencies --skip-duplicate
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
