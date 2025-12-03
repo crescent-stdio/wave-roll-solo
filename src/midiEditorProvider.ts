@@ -27,7 +27,7 @@ interface AppearanceSettings {
 const APPEARANCE_STORAGE_PREFIX = "appearance:";
 
 /**
- * Provider for the Wave Roll Solo custom editor.
+ * Provider for the WaveRoll Solo custom editor.
  * Handles opening MIDI files and rendering them in a webview.
  */
 export class MidiEditorProvider
@@ -47,7 +47,9 @@ export class MidiEditorProvider
   /**
    * Loads saved appearance settings for a file.
    */
-  private loadAppearanceSettings(uri: vscode.Uri): AppearanceSettings | undefined {
+  private loadAppearanceSettings(
+    uri: vscode.Uri
+  ): AppearanceSettings | undefined {
     const key = this.getSettingsKey(uri);
     return this.context.globalState.get<AppearanceSettings>(key);
   }
@@ -142,9 +144,7 @@ export class MidiEditorProvider
             break;
 
           case "error":
-            vscode.window.showErrorMessage(
-              `Wave Roll Solo: ${message.message}`
-            );
+            vscode.window.showErrorMessage(`WaveRoll Solo: ${message.message}`);
             break;
         }
       },
@@ -170,21 +170,20 @@ export class MidiEditorProvider
       const originalDir = vscode.Uri.joinPath(originalUri, "..");
 
       // Find a unique filename (auto-increment if exists)
-      const targetUri = await this.getUniqueFileUri(originalDir, suggestedFilename);
+      const targetUri = await this.getUniqueFileUri(
+        originalDir,
+        suggestedFilename
+      );
 
       // Write the file
       await vscode.workspace.fs.writeFile(targetUri, midiBytes);
 
       // Show success notification with the saved path
       const relativePath = vscode.workspace.asRelativePath(targetUri);
-      vscode.window.showInformationMessage(
-        `MIDI exported: ${relativePath}`
-      );
+      vscode.window.showInformationMessage(`MIDI exported: ${relativePath}`);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Unknown error";
-      vscode.window.showErrorMessage(
-        `Failed to export MIDI: ${errorMsg}`
-      );
+      vscode.window.showErrorMessage(`Failed to export MIDI: ${errorMsg}`);
     }
   }
 
@@ -197,7 +196,8 @@ export class MidiEditorProvider
   ): Promise<vscode.Uri> {
     // Parse filename to base and extension
     const lastDotIndex = filename.lastIndexOf(".");
-    const baseName = lastDotIndex > 0 ? filename.slice(0, lastDotIndex) : filename;
+    const baseName =
+      lastDotIndex > 0 ? filename.slice(0, lastDotIndex) : filename;
     const extension = lastDotIndex > 0 ? filename.slice(lastDotIndex) : "";
 
     // Try original filename first
@@ -228,10 +228,7 @@ export class MidiEditorProvider
   /**
    * Sends MIDI data to the webview as Base64.
    */
-  private sendMidiData(
-    webview: vscode.Webview,
-    document: MidiDocument
-  ): void {
+  private sendMidiData(webview: vscode.Webview, document: MidiDocument): void {
     const base64Data = Buffer.from(document.data).toString("base64");
     webview.postMessage({
       type: "midi-data",
@@ -288,7 +285,7 @@ export class MidiEditorProvider
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="${csp}">
   <link rel="stylesheet" href="${stylesUri}">
-  <title>Wave Roll Solo</title>
+  <title>WaveRoll Solo</title>
 </head>
 <body>
   <div id="app">
@@ -307,4 +304,3 @@ export class MidiEditorProvider
 </html>`;
   }
 }
-

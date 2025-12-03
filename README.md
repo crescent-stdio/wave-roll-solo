@@ -1,4 +1,4 @@
-# Wave Roll Solo
+# WaveRoll Solo
 
 A lightweight VS Code extension for viewing and playing MIDI files with an interactive piano roll visualization.
 
@@ -19,17 +19,18 @@ Built on top of [**WaveRoll**](https://github.com/crescent-stdio/wave-roll) - an
 
 ## Installation
 
-1. Open VS Code
-2. Go to Extensions (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+1. Open VS Code or supported IDEs that support VS Code extensions (e.g. Cursor, etc.)
+2. Go to Extensions 
 3. Search for **"WaveRoll Solo"**
 4. Click **Install**
 
 Or install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=crescent-stdio.wave-roll-solo).
+or [Open VSX](https://open-vsx.org/extension/crescent-stdio/wave-roll-solo)
 
 ## Usage
 
 1. Open any `.mid` or `.midi` file in VS Code
-2. The file will automatically open in the Wave Roll Solo viewer
+2. The file will automatically open in the WaveRoll Solo viewer
 3. Use the player controls to interact with the MIDI file
 
 ## Controls
@@ -44,36 +45,6 @@ Or install directly from the [VS Code Marketplace](https://marketplace.visualstu
 - **WaveRoll Library**: [GitHub](https://github.com/crescent-stdio/wave-roll) | [NPM](https://www.npmjs.com/package/wave-roll)
 - **Web Demo**: [https://crescent-stdio.github.io/wave-roll/](https://crescent-stdio.github.io/wave-roll/)
 - **Standalone Demo**: [https://crescent-stdio.github.io/wave-roll/standalone.html](https://crescent-stdio.github.io/wave-roll/standalone.html)
-
-## Development
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm (recommended) or npm
-
-### Setup
-
-```bash
-cd wave-roll-solo
-pnpm install
-```
-
-### Build
-
-```bash
-# Production build
-pnpm build
-
-# Watch mode (development)
-pnpm watch
-```
-
-### Debug
-
-1. Open the extension folder in VS Code
-2. Press `F5` to launch Extension Development Host
-3. Open a MIDI file in the development host
 
 ## Tech Stack
 
