@@ -317,6 +317,68 @@ function createMidiExportOptions(): MidiExportOptions {
 }
 
 /**
+ * Waits for container layout to be ready with valid dimensions.
+ * In VS Code webview, the container may not have accurate dimensions immediately
+ * after being shown, so we poll until we get a stable width > 0.
+ */
+async function waitForContainerLayout(
+  container: HTMLElement,
+  timeoutMs: number = 2000
+): Promise<void> {
+  const startTime = Date.now();
+  const minWidth = 100; // Minimum expected width in pixels
+
+  return new Promise<void>((resolve, reject) => {
+    const checkLayout = () => {
+      const now = Date.now();
+      const elapsed = now - startTime;
+
+      if (elapsed > timeoutMs) {
+        reject(
+          new Error(
+            `Container layout timeout: width=${container.clientWidth}px after ${timeoutMs}ms`
+          )
+        );
+        return;
+      }
+
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      // Check if container has valid dimensions
+      if (width >= minWidth && height > 0) {
+        // Double-check with one more frame to ensure stability
+        requestAnimationFrame(() => {
+          const stableWidth = container.clientWidth;
+          const stableHeight = container.clientHeight;
+          if (
+            stableWidth >= minWidth &&
+            stableHeight > 0 &&
+            Math.abs(stableWidth - width) < 10
+          ) {
+            // Dimensions are stable, proceed
+            resolve();
+          } else {
+            // Dimensions changed, check again
+            checkLayout();
+          }
+        });
+      } else {
+        // Not ready yet, check again after a short delay
+        setTimeout(checkLayout, 16); // ~60fps polling
+      }
+    };
+
+    // Start checking after initial animation frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        checkLayout();
+      });
+    });
+  });
+}
+
+/**
  * Processes received MIDI data.
  */
 async function handleMidiData(
@@ -327,12 +389,11 @@ async function handleMidiData(
     // Show the container before initializing (so it has dimensions)
     setStatus("ready");
 
-    // Wait for layout to settle after showing the container
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => resolve());
-      });
-    });
+    // Wait for container layout to be ready with valid dimensions
+    // This is critical in VS Code webview where layout calculation may be delayed
+    if (waveRollContainer) {
+      await waitForContainerLayout(waveRollContainer);
+    }
 
     // Decode base64 to bytes
     const midiBytes = decodeBase64ToUint8Array(base64Data);
