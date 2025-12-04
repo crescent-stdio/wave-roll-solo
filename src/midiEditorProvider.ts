@@ -143,6 +143,16 @@ export class MidiEditorProvider
             }
             break;
 
+          case "add-midi-files":
+            // Handle MIDI file add request from webview
+            await this.handleAddMidiFilesRequest(webviewPanel.webview);
+            break;
+
+          case "add-audio-file":
+            // Handle audio file add request from webview
+            await this.handleAddAudioFileRequest(webviewPanel.webview);
+            break;
+
           case "error":
             vscode.window.showErrorMessage(`WaveRoll Solo: ${message.message}`);
             break;
@@ -151,6 +161,101 @@ export class MidiEditorProvider
       undefined,
       this.context.subscriptions
     );
+  }
+
+  /**
+   * Handles MIDI file add request from webview.
+   * Opens VS Code file dialog with MIDI file filter.
+   */
+  private async handleAddMidiFilesRequest(
+    webview: vscode.Webview
+  ): Promise<void> {
+    try {
+      const uris = await vscode.window.showOpenDialog({
+        canSelectMany: true,
+        canSelectFiles: true,
+        canSelectFolders: false,
+        filters: {
+          "MIDI Files": ["mid", "midi"],
+        },
+        title: "Add MIDI Files",
+      });
+
+      if (!uris || uris.length === 0) {
+        return;
+      }
+
+      // Read each file and send to webview
+      for (const uri of uris) {
+        try {
+          const data = await vscode.workspace.fs.readFile(uri);
+          const filename = uri.path.split("/").pop() ?? "unknown";
+          const base64Data = Buffer.from(data).toString("base64");
+
+          webview.postMessage({
+            type: "file-added",
+            data: base64Data,
+            filename,
+          });
+        } catch (error) {
+          const errorMsg =
+            error instanceof Error ? error.message : "Unknown error";
+          vscode.window.showErrorMessage(
+            `Failed to read file ${uri.path}: ${errorMsg}`
+          );
+        }
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      vscode.window.showErrorMessage(`Failed to open file dialog: ${errorMsg}`);
+    }
+  }
+
+  /**
+   * Handles audio file add request from webview.
+   * Opens VS Code file dialog with audio file filter (single file only).
+   */
+  private async handleAddAudioFileRequest(
+    webview: vscode.Webview
+  ): Promise<void> {
+    try {
+      const uris = await vscode.window.showOpenDialog({
+        canSelectMany: false, // Single file only for audio
+        canSelectFiles: true,
+        canSelectFolders: false,
+        filters: {
+          "Audio Files": ["wav", "mp3", "m4a", "ogg"],
+        },
+        title: "Select Audio File",
+      });
+
+      if (!uris || uris.length === 0) {
+        return;
+      }
+
+      // Single file only
+      const uri = uris[0];
+      try {
+        const data = await vscode.workspace.fs.readFile(uri);
+        const filename = uri.path.split("/").pop() ?? "unknown";
+        const base64Data = Buffer.from(data).toString("base64");
+
+        webview.postMessage({
+          type: "file-added",
+          data: base64Data,
+          filename,
+        });
+      } catch (error) {
+        const errorMsg =
+          error instanceof Error ? error.message : "Unknown error";
+        vscode.window.showErrorMessage(
+          `Failed to read file ${uri.path}: ${errorMsg}`
+        );
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      vscode.window.showErrorMessage(`Failed to open file dialog: ${errorMsg}`);
+    }
   }
 
   /**
@@ -275,7 +380,7 @@ export class MidiEditorProvider
       `img-src ${webview.cspSource} data: blob:`,
       `font-src ${webview.cspSource}`,
       `connect-src ${webview.cspSource} ${salamanderUrl} blob:`,
-      `media-src ${webview.cspSource} ${salamanderUrl}`,
+      `media-src ${webview.cspSource} ${salamanderUrl} blob:`,
     ].join("; ");
 
     return `<!DOCTYPE html>

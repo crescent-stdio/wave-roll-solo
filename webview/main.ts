@@ -1,6 +1,18 @@
 import { createWaveRollPlayer } from "wave-roll";
 import type { AppearanceSettings, MidiExportOptions } from "wave-roll";
 
+// Extended player interface with new VS Code integration APIs
+interface WaveRollPlayerExtended {
+  dispose(): void;
+  applyAppearanceSettings(settings: AppearanceSettings): void;
+  onAppearanceChange(
+    callback: (settings: AppearanceSettings) => void
+  ): () => void;
+  onFileAddRequest(callback: () => void): () => void;
+  onAudioFileAddRequest(callback: () => void): () => void;
+  addFileFromData(data: ArrayBuffer | string, filename: string): Promise<void>;
+}
+
 // Declare VS Code API type
 declare function acquireVsCodeApi(): {
   postMessage(message: unknown): void;
@@ -18,8 +30,7 @@ let waveRollContainer: HTMLElement | null;
 let errorMessage: HTMLElement | null;
 
 // State
-let playerInstance: Awaited<ReturnType<typeof createWaveRollPlayer>> | null =
-  null;
+let playerInstance: WaveRollPlayerExtended | null = null;
 let currentBlobUrl: string | null = null;
 let appearanceChangeUnsubscribe: (() => void) | null = null;
 let pendingSettingsRequest: boolean = false;
@@ -41,7 +52,10 @@ function decodeBase64ToUint8Array(base64: string): Uint8Array {
  * Remember to call revokeBlobUrl() when done.
  */
 function createMidiBlobUrl(midiBytes: Uint8Array): string {
-  const blob = new Blob([midiBytes], { type: "audio/midi" });
+  // Create a new ArrayBuffer copy to ensure compatibility with Blob constructor
+  const buffer = new ArrayBuffer(midiBytes.length);
+  new Uint8Array(buffer).set(midiBytes);
+  const blob = new Blob([buffer], { type: "audio/midi" });
   return URL.createObjectURL(blob);
 }
 
@@ -97,31 +111,33 @@ async function initializeWaveRollPlayer(
   currentBlobUrl = createMidiBlobUrl(midiBytes);
 
   // Create the WaveRoll player with the Blob URL
-  // Use soloMode to hide evaluation UI, file sections, and waveform band
+  // Multi-file mode enabled (soloMode: false) for file comparison features
   try {
-    playerInstance = await createWaveRollPlayer(
+    playerInstance = (await createWaveRollPlayer(
       waveRollContainer,
       [
         {
           path: currentBlobUrl,
           name: filename,
-          type: "midi",
         },
       ],
       {
-        soloMode: true,
+        // Disable solo mode to enable multi-file comparison features
+        soloMode: false,
         // Use WebGL for better compatibility in VS Code webview environment
-        pianoRoll: { rendererPreference: 'webgl' },
+        // Keep light background and hide waveform band (like solo mode styling)
+        pianoRoll: {
+          rendererPreference: "webgl",
+          showWaveformBand: false,
+          backgroundColor: 0xffffff,
+        },
         // Use custom export handler to save MIDI to original file location
         midiExport: createMidiExportOptions(),
       }
-    );
+    )) as unknown as WaveRollPlayerExtended;
 
-    // Set readonly mode: disable file add/remove in VS Code context
-    playerInstance.setPermissions({
-      canAddFiles: false,
-      canRemoveFiles: false,
-    });
+    // Setup file add request callback to use VS Code file dialog
+    setupFileAddRequestListener();
 
     // Request saved appearance settings from extension
     requestSavedSettings();
@@ -152,6 +168,37 @@ function handleMessage(event: MessageEvent): void {
       }
       pendingSettingsRequest = false;
       break;
+
+    case "file-added":
+      // Handle file added via VS Code file dialog
+      handleFileAdded(message.data, message.filename);
+      break;
+  }
+}
+
+/**
+ * Handles a file added via VS Code file dialog.
+ * Uses the player's addFileFromData API to add the file.
+ */
+async function handleFileAdded(
+  base64Data: string,
+  filename: string
+): Promise<void> {
+  if (!playerInstance) {
+    console.error("[WaveRoll] Cannot add file: player not initialized");
+    return;
+  }
+
+  try {
+    await playerInstance.addFileFromData(base64Data, filename);
+  } catch (error) {
+    console.error("[WaveRoll] Error adding file:", error);
+    const errorMsg =
+      error instanceof Error ? error.message : "Failed to add file";
+    vscode.postMessage({
+      type: "error",
+      message: errorMsg,
+    });
   }
 }
 
@@ -186,11 +233,48 @@ function setupAppearanceChangeListener(): void {
   }
 
   // Subscribe to appearance changes
-  appearanceChangeUnsubscribe = playerInstance.onAppearanceChange((settings) => {
-    // Don't save if we're still loading initial settings
-    if (pendingSettingsRequest) return;
+  appearanceChangeUnsubscribe = playerInstance.onAppearanceChange(
+    (settings) => {
+      // Don't save if we're still loading initial settings
+      if (pendingSettingsRequest) return;
 
-    saveAppearanceSettings(settings);
+      saveAppearanceSettings(settings);
+    }
+  );
+}
+
+// State for file add request listeners
+let fileAddRequestUnsubscribe: (() => void) | null = null;
+let audioFileAddRequestUnsubscribe: (() => void) | null = null;
+
+/**
+ * Setup file add request listeners.
+ * When user clicks "Add MIDI Files" or "Add Audio File" button,
+ * send message to VS Code extension to open native file dialog.
+ */
+function setupFileAddRequestListener(): void {
+  if (!playerInstance) return;
+
+  // Unsubscribe previous listeners if exists
+  if (fileAddRequestUnsubscribe) {
+    fileAddRequestUnsubscribe();
+    fileAddRequestUnsubscribe = null;
+  }
+  if (audioFileAddRequestUnsubscribe) {
+    audioFileAddRequestUnsubscribe();
+    audioFileAddRequestUnsubscribe = null;
+  }
+
+  // Subscribe to MIDI file add requests
+  fileAddRequestUnsubscribe = playerInstance.onFileAddRequest(() => {
+    // Request VS Code to show MIDI file dialog
+    vscode.postMessage({ type: "add-midi-files" });
+  });
+
+  // Subscribe to audio file add requests
+  audioFileAddRequestUnsubscribe = playerInstance.onAudioFileAddRequest(() => {
+    // Request VS Code to show audio file dialog
+    vscode.postMessage({ type: "add-audio-file" });
   });
 }
 
@@ -221,7 +305,7 @@ function createMidiExportOptions(): MidiExportOptions {
     onExport: async (blob: Blob, filename: string) => {
       // Convert blob to base64 for sending via postMessage
       const base64Data = await blobToBase64(blob);
-      
+
       // Send to extension for saving to original file location
       vscode.postMessage({
         type: "export-midi",
@@ -287,6 +371,14 @@ function initialize(): void {
     if (appearanceChangeUnsubscribe) {
       appearanceChangeUnsubscribe();
       appearanceChangeUnsubscribe = null;
+    }
+    if (fileAddRequestUnsubscribe) {
+      fileAddRequestUnsubscribe();
+      fileAddRequestUnsubscribe = null;
+    }
+    if (audioFileAddRequestUnsubscribe) {
+      audioFileAddRequestUnsubscribe();
+      audioFileAddRequestUnsubscribe = null;
     }
     if (playerInstance) {
       playerInstance.dispose();

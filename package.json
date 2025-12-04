@@ -3,7 +3,7 @@
   "displayName": "WaveRoll Solo - Single MIDI Player",
   "description": "VS Code Extension for MIDI Piano-Roll Visualization and Playback (Powered by wave-roll)",
   "publisher": "crescent-stdio",
-  "version": "0.0.7",
+  "version": "0.4.0",
   "icon": "icon.jpg",
   "repository": {
     "type": "git",
@@ -51,6 +51,6 @@
   "dependencies": {
     "@tonejs/midi": "^2.0.28",
     "tone": "^15.1.22",
-    "wave-roll": "^0.3.0"
+    "wave-roll": "file:../wave-roll"
   }
 }
