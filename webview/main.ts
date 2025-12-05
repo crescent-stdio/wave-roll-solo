@@ -255,7 +255,9 @@ let audioFileAddRequestUnsubscribe: (() => void) | null = null;
  * send message to VS Code extension to open native file dialog.
  */
 function setupFileAddRequestListener(): void {
-  if (!playerInstance) return;
+  if (!playerInstance) {
+    return;
+  }
 
   // Unsubscribe previous listeners if exists
   if (fileAddRequestUnsubscribe) {

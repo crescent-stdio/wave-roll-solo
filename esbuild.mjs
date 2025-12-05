@@ -52,7 +52,6 @@ function copyStyles() {
   }
 
   fs.copyFileSync(srcPath, destPath);
-  console.log("✓ Copied styles.css to dist/webview/");
 }
 
 /**
@@ -79,7 +78,6 @@ async function build() {
         copyStyles();
       });
 
-      console.log("👀 Watching for changes...");
     } else {
       // Production build
       await Promise.all([
@@ -88,7 +86,6 @@ async function build() {
       ]);
       copyStyles();
 
-      console.log("✅ Build completed successfully!");
     }
   } catch (error) {
     console.error("❌ Build failed:", error);
