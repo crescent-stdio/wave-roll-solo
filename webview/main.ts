@@ -124,6 +124,8 @@ async function initializeWaveRollPlayer(
       {
         // Disable solo mode to enable multi-file comparison features
         soloMode: false,
+        // Default highlight to file colors for clearer baseline view
+        defaultHighlightMode: "file",
         // Use WebGL for better compatibility in VS Code webview environment
         // Keep light background and hide waveform band (like solo mode styling)
         pianoRoll: {
