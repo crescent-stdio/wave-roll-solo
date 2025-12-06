@@ -15,8 +15,8 @@ importers:
         specifier: ^15.1.22
         version: 15.1.22
       wave-roll:
-        specifier: 0.4.0-next.1
-        version: 0.4.0-next.1
+        specifier: 0.4.0
+        version: 0.4.0
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -1739,8 +1739,8 @@ packages:
       yaml:
         optional: true
 
-  wave-roll@0.4.0-next.1:
-    resolution: {integrity: sha512-WewbWss4syF7wazZLlMmg/fnqsTLE/KOWUfjocpUPZtPGA9CasBtV0oh00nOPzzvcKBYtlnHYZ1D184odNmLmw==}
+  wave-roll@0.4.0:
+    resolution: {integrity: sha512-tWcf65jCMvUyqz/fKt8Pneuj5hFEA41jtxGUjnGSgyzTa7aTe/n0YJhPRdk4DyJ143TpygFmirnoCl9CrXMgLg==}
 
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
@@ -3490,7 +3490,7 @@ snapshots:
       '@types/node': 20.19.25
       fsevents: 2.3.3
 
-  wave-roll@0.4.0-next.1:
+  wave-roll@0.4.0:
     dependencies:
       '@tonejs/midi': 2.0.28
       d3-scale: 4.0.2
