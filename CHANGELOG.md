@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic VS Code custom editor provider for MIDI files
 - Webview-based rendering
 
-[Unreleased]: https://github.com/crescent-stdio/wave-roll-solo/compare/v0.0.3...HEAD
-[0.0.3]: https://github.com/crescent-stdio/wave-roll-solo/compare/v0.0.2...v0.0.3
-[0.0.2]: https://github.com/crescent-stdio/wave-roll-solo/compare/v0.0.1...v0.0.2
-[0.0.1]: https://github.com/crescent-stdio/wave-roll-solo/releases/tag/v0.0.1
+[Unreleased]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/crescent-stdio/wave-roll-studio/releases/tag/v0.0.1

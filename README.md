@@ -1,12 +1,12 @@
-# WaveRoll Solo
+# WaveRoll Studio - MIDI Player & Viewer
 
-A lightweight VS Code extension for viewing and playing MIDI files with an interactive piano roll visualization.
+A VS Code extension for viewing and playing MIDI files with an interactive piano roll visualization. Supports multiple MIDI files for comparative analysis.
 
 Built on top of [**WaveRoll**](https://github.com/crescent-stdio/wave-roll) - an interactive JavaScript library for MIDI piano roll visualization.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-![Screenshot of WaveRoll Solo](./wave-roll-solo.png)
+![Screenshot of WaveRoll Studio](./wave-roll-solo.png)
 
 
 ## Features
@@ -21,17 +21,18 @@ Built on top of [**WaveRoll**](https://github.com/crescent-stdio/wave-roll) - an
 
 1. Open VS Code or supported IDEs that support VS Code extensions (e.g. Cursor, etc.)
 2. Go to Extensions 
-3. Search for **"WaveRoll Solo"**
+3. Search for **"WaveRoll Studio"**
 4. Click **Install**
 
-Or install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=crescent-stdio.wave-roll-solo).
-or [Open VSX](https://open-vsx.org/extension/crescent-stdio/wave-roll-solo)
+Or install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=crescent-stdio.wave-roll-studio).
+or [Open VSX](https://open-vsx.org/extension/crescent-stdio/wave-roll-studio)
 
 ## Usage
 
 1. Open any `.mid` or `.midi` file in VS Code
-2. The file will automatically open in the WaveRoll Solo viewer
+2. The file will automatically open in the WaveRoll Studio viewer
 3. Use the player controls to interact with the MIDI file
+4. Add multiple MIDI files for comparative visualization
 
 ## Controls
 

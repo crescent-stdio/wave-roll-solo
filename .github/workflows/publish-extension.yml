@@ -60,6 +60,6 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
       - name: Publish to Open VSX Registry
-        run: pnpm dlx ovsx publish wave-roll-solo-${{ steps.package-version.outputs.version }}.vsix --skip-duplicate
+        run: pnpm dlx ovsx publish wave-roll-studio-${{ steps.package-version.outputs.version }}.vsix --skip-duplicate
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}

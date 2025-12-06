@@ -113,6 +113,26 @@ async function initializeWaveRollPlayer(
   // Create the WaveRoll player with the Blob URL
   // Multi-file mode enabled (soloMode: false) for file comparison features
   try {
+    const playerOptions = {
+      // Disable solo mode to enable multi-file comparison features
+      soloMode: false,
+      // Default highlight to file colors for clearer baseline view
+      defaultHighlightMode: "file",
+      // Use WebGL for better compatibility in VS Code webview environment
+      // Keep light background and hide waveform band (like solo mode styling)
+      pianoRoll: {
+        rendererPreference: "webgl",
+        showWaveformBand: false,
+        backgroundColor: 0xffffff,
+      },
+      // Use custom export handler to save MIDI to original file location
+      midiExport: createMidiExportOptions(),
+      // Disable drag & drop in VS Code webview; click-to-open only
+      allowFileDrop: false,
+    } as Parameters<typeof createWaveRollPlayer>[2] & {
+      allowFileDrop?: boolean;
+    };
+
     playerInstance = (await createWaveRollPlayer(
       waveRollContainer,
       [
@@ -121,21 +141,7 @@ async function initializeWaveRollPlayer(
           name: filename,
         },
       ],
-      {
-        // Disable solo mode to enable multi-file comparison features
-        soloMode: false,
-        // Default highlight to file colors for clearer baseline view
-        defaultHighlightMode: "file",
-        // Use WebGL for better compatibility in VS Code webview environment
-        // Keep light background and hide waveform band (like solo mode styling)
-        pianoRoll: {
-          rendererPreference: "webgl",
-          showWaveformBand: false,
-          backgroundColor: 0xffffff,
-        },
-        // Use custom export handler to save MIDI to original file location
-        midiExport: createMidiExportOptions(),
-      }
+      playerOptions
     )) as unknown as WaveRollPlayerExtended;
 
     // Setup file add request callback to use VS Code file dialog

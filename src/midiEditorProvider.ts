@@ -27,13 +27,13 @@ interface AppearanceSettings {
 const APPEARANCE_STORAGE_PREFIX = "appearance:";
 
 /**
- * Provider for the WaveRoll Solo custom editor.
+ * Provider for the WaveRoll Studio custom editor.
  * Handles opening MIDI files and rendering them in a webview.
  */
 export class MidiEditorProvider
   implements vscode.CustomReadonlyEditorProvider<MidiDocument>
 {
-  public static readonly viewType = "wave-roll-solo.preview";
+  public static readonly viewType = "wave-roll-studio.preview";
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
@@ -154,7 +154,7 @@ export class MidiEditorProvider
             break;
 
           case "error":
-            vscode.window.showErrorMessage(`WaveRoll Solo: ${message.message}`);
+            vscode.window.showErrorMessage(`WaveRoll Studio: ${message.message}`);
             break;
         }
       },
@@ -390,7 +390,7 @@ export class MidiEditorProvider
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="${csp}">
   <link rel="stylesheet" href="${stylesUri}">
-  <title>WaveRoll Solo</title>
+  <title>WaveRoll Studio</title>
 </head>
 <body>
   <div id="app">
