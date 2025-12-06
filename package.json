@@ -1,7 +1,7 @@
 {
   "name": "wave-roll-solo",
-  "displayName": "WaveRoll Solo - Single MIDI Player",
-  "description": "VS Code Extension for MIDI Piano-Roll Visualization and Playback (Powered by wave-roll)",
+  "displayName": "[DEPRECATED] WaveRoll Solo",
+  "description": "⚠️ DEPRECATED - Use WaveRoll Studio instead. VS Code Extension for MIDI Piano-Roll Visualization and Playback",
   "publisher": "crescent-stdio",
   "version": "0.0.8",
   "icon": "icon.jpg",
