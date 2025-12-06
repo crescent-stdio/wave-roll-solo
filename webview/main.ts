@@ -1,6 +1,18 @@
 import { createWaveRollPlayer } from "wave-roll";
 import type { AppearanceSettings, MidiExportOptions } from "wave-roll";
 
+// Extended player interface with new VS Code integration APIs
+interface WaveRollPlayerExtended {
+  dispose(): void;
+  applyAppearanceSettings(settings: AppearanceSettings): void;
+  onAppearanceChange(
+    callback: (settings: AppearanceSettings) => void
+  ): () => void;
+  onFileAddRequest(callback: () => void): () => void;
+  onAudioFileAddRequest(callback: () => void): () => void;
+  addFileFromData(data: ArrayBuffer | string, filename: string): Promise<void>;
+}
+
 // Declare VS Code API type
 declare function acquireVsCodeApi(): {
   postMessage(message: unknown): void;
@@ -18,11 +30,11 @@ let waveRollContainer: HTMLElement | null;
 let errorMessage: HTMLElement | null;
 
 // State
-let playerInstance: Awaited<ReturnType<typeof createWaveRollPlayer>> | null =
-  null;
+let playerInstance: WaveRollPlayerExtended | null = null;
 let currentBlobUrl: string | null = null;
 let appearanceChangeUnsubscribe: (() => void) | null = null;
 let pendingSettingsRequest: boolean = false;
+let trackRowAdjustObserver: MutationObserver | null = null;
 
 /**
  * Decodes a Base64 string to Uint8Array.
@@ -41,7 +53,10 @@ function decodeBase64ToUint8Array(base64: string): Uint8Array {
  * Remember to call revokeBlobUrl() when done.
  */
 function createMidiBlobUrl(midiBytes: Uint8Array): string {
-  const blob = new Blob([midiBytes], { type: "audio/midi" });
+  // Create a new ArrayBuffer copy to ensure compatibility with Blob constructor
+  const buffer = new ArrayBuffer(midiBytes.length);
+  new Uint8Array(buffer).set(midiBytes);
+  const blob = new Blob([buffer], { type: "audio/midi" });
   return URL.createObjectURL(blob);
 }
 
@@ -52,6 +67,71 @@ function revokeBlobUrl(): void {
   if (currentBlobUrl) {
     URL.revokeObjectURL(currentBlobUrl);
     currentBlobUrl = null;
+  }
+}
+
+/**
+ * Applies slight spacing/size tweaks to track rows to better align
+ * instrument/eye/volume/notes controls without touching wave-roll code.
+ */
+function applyTrackRowAdjustments(root: HTMLElement): void {
+  const adjust = () => {
+    const rows = Array.from(root.querySelectorAll<HTMLElement>("div")).filter(
+      (row) => {
+        const hasEye = row.querySelector(
+          'button[title="Toggle track visibility"]'
+        );
+        return (
+          row.style.display === "flex" &&
+          row.style.alignItems === "center" &&
+          row.style.gap === "8px" &&
+          row.style.padding === "2px 0px" &&
+          !!hasEye
+        );
+      }
+    );
+
+    rows.forEach((row) => {
+      row.style.gap = "8px";
+
+      const eyeBtn = row.querySelector<HTMLButtonElement>(
+        'button[title="Toggle track visibility"]'
+      );
+      if (eyeBtn) {
+        eyeBtn.style.marginLeft = "11px";
+        eyeBtn.style.marginRight = "3px";
+      }
+
+      const autoBtn = row.querySelector<HTMLButtonElement>(
+        'button[title^="Using"]'
+      );
+      if (autoBtn) {
+        autoBtn.style.marginRight = "8px";
+      }
+
+      const noteBadge = Array.from(
+        row.querySelectorAll<HTMLSpanElement>("span")
+      ).find((span) => (span.textContent ?? "").trim().endsWith("notes"));
+      if (noteBadge) {
+        noteBadge.style.minWidth = "101px";
+        noteBadge.style.marginRight = "10px";
+      }
+    });
+  };
+
+  adjust();
+
+  if (trackRowAdjustObserver) {
+    trackRowAdjustObserver.disconnect();
+  }
+  trackRowAdjustObserver = new MutationObserver(() => adjust());
+  trackRowAdjustObserver.observe(root, { childList: true, subtree: true });
+}
+
+function teardownTrackRowAdjustments(): void {
+  if (trackRowAdjustObserver) {
+    trackRowAdjustObserver.disconnect();
+    trackRowAdjustObserver = null;
   }
 }
 
@@ -97,31 +177,44 @@ async function initializeWaveRollPlayer(
   currentBlobUrl = createMidiBlobUrl(midiBytes);
 
   // Create the WaveRoll player with the Blob URL
-  // Use soloMode to hide evaluation UI, file sections, and waveform band
+  // Multi-file mode enabled (soloMode: false) for file comparison features
   try {
-    playerInstance = await createWaveRollPlayer(
+    const playerOptions = {
+      // Disable solo mode to enable multi-file comparison features
+      soloMode: false,
+      // Default highlight to file colors for clearer baseline view
+      defaultHighlightMode: "file",
+      // Use WebGL for better compatibility in VS Code webview environment
+      // Keep light background and hide waveform band (like solo mode styling)
+      pianoRoll: {
+        rendererPreference: "webgl",
+        showWaveformBand: false,
+        backgroundColor: 0xffffff,
+      },
+      // Use custom export handler to save MIDI to original file location
+      midiExport: createMidiExportOptions(),
+      // Disable drag & drop in VS Code webview; click-to-open only
+      allowFileDrop: false,
+    } as Parameters<typeof createWaveRollPlayer>[2] & {
+      allowFileDrop?: boolean;
+    };
+
+    playerInstance = (await createWaveRollPlayer(
       waveRollContainer,
       [
         {
           path: currentBlobUrl,
           name: filename,
-          type: "midi",
         },
       ],
-      {
-        soloMode: true,
-        // Use WebGL for better compatibility in VS Code webview environment
-        pianoRoll: { rendererPreference: 'webgl' },
-        // Use custom export handler to save MIDI to original file location
-        midiExport: createMidiExportOptions(),
-      }
-    );
+      playerOptions
+    )) as unknown as WaveRollPlayerExtended;
 
-    // Set readonly mode: disable file add/remove in VS Code context
-    playerInstance.setPermissions({
-      canAddFiles: false,
-      canRemoveFiles: false,
-    });
+    // Align track-row controls (eye/volume/notes) without modifying wave-roll lib code
+    applyTrackRowAdjustments(waveRollContainer);
+
+    // Setup file add request callback to use VS Code file dialog
+    setupFileAddRequestListener();
 
     // Request saved appearance settings from extension
     requestSavedSettings();
@@ -152,6 +245,37 @@ function handleMessage(event: MessageEvent): void {
       }
       pendingSettingsRequest = false;
       break;
+
+    case "file-added":
+      // Handle file added via VS Code file dialog
+      handleFileAdded(message.data, message.filename);
+      break;
+  }
+}
+
+/**
+ * Handles a file added via VS Code file dialog.
+ * Uses the player's addFileFromData API to add the file.
+ */
+async function handleFileAdded(
+  base64Data: string,
+  filename: string
+): Promise<void> {
+  if (!playerInstance) {
+    console.error("[WaveRoll] Cannot add file: player not initialized");
+    return;
+  }
+
+  try {
+    await playerInstance.addFileFromData(base64Data, filename);
+  } catch (error) {
+    console.error("[WaveRoll] Error adding file:", error);
+    const errorMsg =
+      error instanceof Error ? error.message : "Failed to add file";
+    vscode.postMessage({
+      type: "error",
+      message: errorMsg,
+    });
   }
 }
 
@@ -186,11 +310,50 @@ function setupAppearanceChangeListener(): void {
   }
 
   // Subscribe to appearance changes
-  appearanceChangeUnsubscribe = playerInstance.onAppearanceChange((settings) => {
-    // Don't save if we're still loading initial settings
-    if (pendingSettingsRequest) return;
+  appearanceChangeUnsubscribe = playerInstance.onAppearanceChange(
+    (settings) => {
+      // Don't save if we're still loading initial settings
+      if (pendingSettingsRequest) return;
 
-    saveAppearanceSettings(settings);
+      saveAppearanceSettings(settings);
+    }
+  );
+}
+
+// State for file add request listeners
+let fileAddRequestUnsubscribe: (() => void) | null = null;
+let audioFileAddRequestUnsubscribe: (() => void) | null = null;
+
+/**
+ * Setup file add request listeners.
+ * When user clicks "Add MIDI Files" or "Add Audio File" button,
+ * send message to VS Code extension to open native file dialog.
+ */
+function setupFileAddRequestListener(): void {
+  if (!playerInstance) {
+    return;
+  }
+
+  // Unsubscribe previous listeners if exists
+  if (fileAddRequestUnsubscribe) {
+    fileAddRequestUnsubscribe();
+    fileAddRequestUnsubscribe = null;
+  }
+  if (audioFileAddRequestUnsubscribe) {
+    audioFileAddRequestUnsubscribe();
+    audioFileAddRequestUnsubscribe = null;
+  }
+
+  // Subscribe to MIDI file add requests
+  fileAddRequestUnsubscribe = playerInstance.onFileAddRequest(() => {
+    // Request VS Code to show MIDI file dialog
+    vscode.postMessage({ type: "add-midi-files" });
+  });
+
+  // Subscribe to audio file add requests
+  audioFileAddRequestUnsubscribe = playerInstance.onAudioFileAddRequest(() => {
+    // Request VS Code to show audio file dialog
+    vscode.postMessage({ type: "add-audio-file" });
   });
 }
 
@@ -221,7 +384,7 @@ function createMidiExportOptions(): MidiExportOptions {
     onExport: async (blob: Blob, filename: string) => {
       // Convert blob to base64 for sending via postMessage
       const base64Data = await blobToBase64(blob);
-      
+
       // Send to extension for saving to original file location
       vscode.postMessage({
         type: "export-midi",
@@ -230,6 +393,68 @@ function createMidiExportOptions(): MidiExportOptions {
       });
     },
   };
+}
+
+/**
+ * Waits for container layout to be ready with valid dimensions.
+ * In VS Code webview, the container may not have accurate dimensions immediately
+ * after being shown, so we poll until we get a stable width > 0.
+ */
+async function waitForContainerLayout(
+  container: HTMLElement,
+  timeoutMs: number = 2000
+): Promise<void> {
+  const startTime = Date.now();
+  const minWidth = 100; // Minimum expected width in pixels
+
+  return new Promise<void>((resolve, reject) => {
+    const checkLayout = () => {
+      const now = Date.now();
+      const elapsed = now - startTime;
+
+      if (elapsed > timeoutMs) {
+        reject(
+          new Error(
+            `Container layout timeout: width=${container.clientWidth}px after ${timeoutMs}ms`
+          )
+        );
+        return;
+      }
+
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      // Check if container has valid dimensions
+      if (width >= minWidth && height > 0) {
+        // Double-check with one more frame to ensure stability
+        requestAnimationFrame(() => {
+          const stableWidth = container.clientWidth;
+          const stableHeight = container.clientHeight;
+          if (
+            stableWidth >= minWidth &&
+            stableHeight > 0 &&
+            Math.abs(stableWidth - width) < 10
+          ) {
+            // Dimensions are stable, proceed
+            resolve();
+          } else {
+            // Dimensions changed, check again
+            checkLayout();
+          }
+        });
+      } else {
+        // Not ready yet, check again after a short delay
+        setTimeout(checkLayout, 16); // ~60fps polling
+      }
+    };
+
+    // Start checking after initial animation frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        checkLayout();
+      });
+    });
+  });
 }
 
 /**
@@ -243,12 +468,11 @@ async function handleMidiData(
     // Show the container before initializing (so it has dimensions)
     setStatus("ready");
 
-    // Wait for layout to settle after showing the container
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => resolve());
-      });
-    });
+    // Wait for container layout to be ready with valid dimensions
+    // This is critical in VS Code webview where layout calculation may be delayed
+    if (waveRollContainer) {
+      await waitForContainerLayout(waveRollContainer);
+    }
 
     // Decode base64 to bytes
     const midiBytes = decodeBase64ToUint8Array(base64Data);
@@ -288,10 +512,19 @@ function initialize(): void {
       appearanceChangeUnsubscribe();
       appearanceChangeUnsubscribe = null;
     }
+    if (fileAddRequestUnsubscribe) {
+      fileAddRequestUnsubscribe();
+      fileAddRequestUnsubscribe = null;
+    }
+    if (audioFileAddRequestUnsubscribe) {
+      audioFileAddRequestUnsubscribe();
+      audioFileAddRequestUnsubscribe = null;
+    }
     if (playerInstance) {
       playerInstance.dispose();
       playerInstance = null;
     }
+    teardownTrackRowAdjustments();
     revokeBlobUrl();
   });
 

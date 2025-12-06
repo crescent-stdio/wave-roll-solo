@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.4.0] - 2025-12-06
+
+### Added
+- Enable adding MIDI and audio files from the MIDI editor with improved webview file handling.
+- Add default highlight mode for clearer baseline view in the player.
+
+### Changed
+- Switch build workflow to pnpm, update VS Code launch config, and clean build scripts.
+- Adjust track row spacing and control alignment for better readability.
+
+### Fixed
+- Ensure the webview waits for stable container dimensions before processing MIDI data.
+- Disable drag-and-drop uploads in the VS Code view to prevent unintended imports.
+
 ## [0.0.7] - 2025-12-03
 
 ### Added
@@ -57,7 +71,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic VS Code custom editor provider for MIDI files
 - Webview-based rendering
 
-[Unreleased]: https://github.com/crescent-stdio/wave-roll-solo/compare/v0.0.3...HEAD
-[0.0.3]: https://github.com/crescent-stdio/wave-roll-solo/compare/v0.0.2...v0.0.3
-[0.0.2]: https://github.com/crescent-stdio/wave-roll-solo/compare/v0.0.1...v0.0.2
-[0.0.1]: https://github.com/crescent-stdio/wave-roll-solo/releases/tag/v0.0.1
+[Unreleased]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.7...v0.4.0
+[0.0.7]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.6...v0.0.7
+[0.0.6]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.5...v0.0.6
+[0.0.5]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.4...v0.0.5
+[0.0.4]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.3...v0.0.4
+[0.0.3]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/crescent-stdio/wave-roll-studio/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/crescent-stdio/wave-roll-studio/releases/tag/v0.0.1

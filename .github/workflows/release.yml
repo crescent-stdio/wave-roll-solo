@@ -76,7 +76,6 @@ jobs:
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
           generate_release_notes: false
           files: |
-            wave-roll-solo-${{ steps.version.outputs.version }}.vsix
+            wave-roll-studio-${{ steps.version.outputs.version }}.vsix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

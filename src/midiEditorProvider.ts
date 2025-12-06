@@ -27,13 +27,13 @@ interface AppearanceSettings {
 const APPEARANCE_STORAGE_PREFIX = "appearance:";
 
 /**
- * Provider for the WaveRoll Solo custom editor.
+ * Provider for the WaveRoll Studio custom editor.
  * Handles opening MIDI files and rendering them in a webview.
  */
 export class MidiEditorProvider
   implements vscode.CustomReadonlyEditorProvider<MidiDocument>
 {
-  public static readonly viewType = "wave-roll-solo.preview";
+  public static readonly viewType = "wave-roll-studio.preview";
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
@@ -143,14 +143,119 @@ export class MidiEditorProvider
             }
             break;
 
+          case "add-midi-files":
+            // Handle MIDI file add request from webview
+            await this.handleAddMidiFilesRequest(webviewPanel.webview);
+            break;
+
+          case "add-audio-file":
+            // Handle audio file add request from webview
+            await this.handleAddAudioFileRequest(webviewPanel.webview);
+            break;
+
           case "error":
-            vscode.window.showErrorMessage(`WaveRoll Solo: ${message.message}`);
+            vscode.window.showErrorMessage(`WaveRoll Studio: ${message.message}`);
             break;
         }
       },
       undefined,
       this.context.subscriptions
     );
+  }
+
+  /**
+   * Handles MIDI file add request from webview.
+   * Opens VS Code file dialog with MIDI file filter.
+   */
+  private async handleAddMidiFilesRequest(
+    webview: vscode.Webview
+  ): Promise<void> {
+    try {
+      const uris = await vscode.window.showOpenDialog({
+        canSelectMany: true,
+        canSelectFiles: true,
+        canSelectFolders: false,
+        filters: {
+          "MIDI Files": ["mid", "midi"],
+        },
+        title: "Add MIDI Files",
+      });
+
+      if (!uris || uris.length === 0) {
+        return;
+      }
+
+      // Read each file and send to webview
+      for (const uri of uris) {
+        try {
+          const data = await vscode.workspace.fs.readFile(uri);
+          const filename = uri.path.split("/").pop() ?? "unknown";
+          const base64Data = Buffer.from(data).toString("base64");
+
+          webview.postMessage({
+            type: "file-added",
+            data: base64Data,
+            filename,
+          });
+        } catch (error) {
+          const errorMsg =
+            error instanceof Error ? error.message : "Unknown error";
+          vscode.window.showErrorMessage(
+            `Failed to read file ${uri.path}: ${errorMsg}`
+          );
+        }
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      vscode.window.showErrorMessage(`Failed to open file dialog: ${errorMsg}`);
+    }
+  }
+
+  /**
+   * Handles audio file add request from webview.
+   * Opens VS Code file dialog with audio file filter (single file only).
+   */
+  private async handleAddAudioFileRequest(
+    webview: vscode.Webview
+  ): Promise<void> {
+    try {
+      const uris = await vscode.window.showOpenDialog({
+        canSelectMany: false, // Single file only for audio
+        canSelectFiles: true,
+        canSelectFolders: false,
+        filters: {
+          "Audio Files": ["wav", "mp3", "m4a", "ogg"],
+        },
+        title: "Select Audio File",
+      });
+
+      if (!uris || uris.length === 0) {
+        return;
+      }
+
+      // Single file only
+      const uri = uris[0];
+      try {
+        const data = await vscode.workspace.fs.readFile(uri);
+        const filename = uri.path.split("/").pop() ?? "unknown";
+        const base64Data = Buffer.from(data).toString("base64");
+
+        webview.postMessage({
+          type: "file-added",
+          data: base64Data,
+          filename,
+        });
+      } catch (error) {
+        const errorMsg =
+          error instanceof Error ? error.message : "Unknown error";
+        vscode.window.showErrorMessage(
+          `Failed to read file ${uri.path}: ${errorMsg}`
+        );
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      vscode.window.showErrorMessage(`Failed to open file dialog: ${errorMsg}`);
+    }
   }
 
   /**
@@ -263,10 +368,12 @@ export class MidiEditorProvider
 
     // Content Security Policy
     // Allow Salamander Grand Piano samples from tonejs.github.io
+    // Allow MIDI.js soundfonts from paulrosen.github.io
     // PixiJS requires 'unsafe-eval' for shader compilation
     // Tone.js requires blob: workers for audio scheduling
     // blob: in connect-src is required for loading MIDI data from Blob URLs
     const salamanderUrl = "https://tonejs.github.io";
+    const midijsSoundfontsUrl = "https://paulrosen.github.io";
     const csp = [
       `default-src 'none'`,
       `style-src ${webview.cspSource} 'unsafe-inline'`,
@@ -274,8 +381,8 @@ export class MidiEditorProvider
       `worker-src 'self' blob:`,
       `img-src ${webview.cspSource} data: blob:`,
       `font-src ${webview.cspSource}`,
-      `connect-src ${webview.cspSource} ${salamanderUrl} blob:`,
-      `media-src ${webview.cspSource} ${salamanderUrl}`,
+      `connect-src ${webview.cspSource} ${salamanderUrl} ${midijsSoundfontsUrl} blob:`,
+      `media-src ${webview.cspSource} ${salamanderUrl} ${midijsSoundfontsUrl} blob:`,
     ].join("; ");
 
     return `<!DOCTYPE html>
@@ -285,7 +392,7 @@ export class MidiEditorProvider
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="${csp}">
   <link rel="stylesheet" href="${stylesUri}">
-  <title>WaveRoll Solo</title>
+  <title>WaveRoll Studio</title>
 </head>
 <body>
   <div id="app">

@@ -1,13 +1,13 @@
 {
-  "name": "wave-roll-solo",
-  "displayName": "WaveRoll Solo - Single MIDI Player",
-  "description": "VS Code Extension for MIDI Piano-Roll Visualization and Playback (Powered by wave-roll)",
+  "name": "wave-roll-studio",
+  "displayName": "WaveRoll Studio - MIDI Player & Viewer",
+  "description": "Comparative MIDI Piano-Roll Visualization & Playback Extension (powered by wave-roll)",
   "publisher": "crescent-stdio",
-  "version": "0.0.7",
-  "icon": "icon.jpg",
+  "version": "0.4.0",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/crescent-stdio/wave-roll-solo"
+    "url": "https://github.com/crescent-stdio/wave-roll-studio"
   },
   "engines": {
     "vscode": "^1.80.0"
@@ -16,13 +16,21 @@
     "Visualization",
     "Other"
   ],
+  "keywords": [
+    "music",
+    "midi",
+    "piano-roll",
+    "midi-visualisation",
+    "audio",
+    "visualization"
+  ],
   "main": "./dist/extension/extension.js",
   "activationEvents": [],
   "contributes": {
     "customEditors": [
       {
-        "viewType": "wave-roll-solo.preview",
-        "displayName": "WaveRoll Solo",
+        "viewType": "wave-roll-studio.preview",
+        "displayName": "WaveRoll Studio",
         "selector": [
           {
             "filenamePattern": "*.mid"
@@ -44,6 +52,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.20.0",
     "typescript": "^5.0.0",
     "vite": "^7.2.6"
@@ -51,6 +60,6 @@
   "dependencies": {
     "@tonejs/midi": "^2.0.28",
     "tone": "^15.1.22",
-    "wave-roll": "^0.3.0"
+    "wave-roll": "0.4.0"
   }
 }
