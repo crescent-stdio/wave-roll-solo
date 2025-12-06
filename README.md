@@ -1,10 +1,13 @@
 # WaveRoll Solo
 
+> ⚠️ **DEPRECATED**: This extension is no longer maintained. Please use [WaveRoll Studio](https://open-vsx.org/extension/crescent-stdio/wave-roll-studio) instead.
+
 A lightweight VS Code extension for viewing and playing MIDI files with an interactive piano roll visualization.
 
 Built on top of [**WaveRoll**](https://github.com/crescent-stdio/wave-roll) - an interactive JavaScript library for MIDI piano roll visualization.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Deprecated](https://img.shields.io/badge/status-deprecated-red.svg)
 
 ![Screenshot of WaveRoll Solo](./wave-roll-solo.png)
 
