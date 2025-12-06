@@ -1,13 +1,12 @@
 # WaveRoll Studio - MIDI Player & Viewer
 
-A VS Code extension for viewing and playing MIDI files with an interactive piano roll visualization. Supports multiple MIDI files for comparative analysis.
-
-Built on top of [**WaveRoll**](https://github.com/crescent-stdio/wave-roll) - an interactive JavaScript library for MIDI piano roll visualization.
-
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+> **WaveRoll Studio** is a [VS Code extension](https://marketplace.visualstudio.com/items?itemName=crescent-stdio.wave-roll-studio) (also available on [Open VSX](https://open-vsx.org/extension/crescent-stdio/wave-roll-studio)) for viewing and playing MIDI files with an interactive piano roll visualization. Supports multiple MIDI files for comparative analysis.
 
 ![Screenshot of WaveRoll Studio](./wave-roll-solo.png)
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
+Built on top of [**WaveRoll**](https://github.com/crescent-stdio/wave-roll), an interactive JavaScript library for MIDI piano roll visualization.
 
 ## Features
 
