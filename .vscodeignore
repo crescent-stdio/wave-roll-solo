@@ -15,13 +15,20 @@ tests/**
 
 # Node modules (dependencies are bundled)
 node_modules/**
+.pnpm-store/**
+pnpm-lock.yaml
+
+# Sample files
+sample/**
 
 # Git files
 .git/**
 .gitignore
+.github/**
 
 # Editor/IDE
 .vscode/**
+.cursor/**
 *.code-workspace
 
 # Build artifacts
@@ -33,4 +40,3 @@ node_modules/**
 !README.md
 .eslintrc*
 .prettierrc*
-
