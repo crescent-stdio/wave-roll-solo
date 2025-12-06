@@ -368,10 +368,12 @@ export class MidiEditorProvider
 
     // Content Security Policy
     // Allow Salamander Grand Piano samples from tonejs.github.io
+    // Allow MIDI.js soundfonts from paulrosen.github.io
     // PixiJS requires 'unsafe-eval' for shader compilation
     // Tone.js requires blob: workers for audio scheduling
     // blob: in connect-src is required for loading MIDI data from Blob URLs
     const salamanderUrl = "https://tonejs.github.io";
+    const midijsSoundfontsUrl = "https://paulrosen.github.io";
     const csp = [
       `default-src 'none'`,
       `style-src ${webview.cspSource} 'unsafe-inline'`,
@@ -379,8 +381,8 @@ export class MidiEditorProvider
       `worker-src 'self' blob:`,
       `img-src ${webview.cspSource} data: blob:`,
       `font-src ${webview.cspSource}`,
-      `connect-src ${webview.cspSource} ${salamanderUrl} blob:`,
-      `media-src ${webview.cspSource} ${salamanderUrl} blob:`,
+      `connect-src ${webview.cspSource} ${salamanderUrl} ${midijsSoundfontsUrl} blob:`,
+      `media-src ${webview.cspSource} ${salamanderUrl} ${midijsSoundfontsUrl} blob:`,
     ].join("; ");
 
     return `<!DOCTYPE html>

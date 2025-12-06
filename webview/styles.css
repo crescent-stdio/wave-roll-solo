@@ -131,50 +131,39 @@ body {
   background: #4c4c4c;
 }
 
-/* Match per-file/track volume sliders to master volume styling */
-[data-role="file-volume"] {
-  --wr-volume-track-height: 6px;
-  --wr-volume-thumb-size: 14px;
-}
-
-[data-role="file-volume"] input[type="range"][aria-orientation="vertical"] {
+/* Volume sliders styling (file and track volumes) */
+input[type="range"][aria-orientation="vertical"] {
   width: 100px !important;
-  height: var(--wr-volume-track-height) !important;
+  height: 6px !important;
   border-radius: 999px !important;
   background-clip: padding-box !important;
 }
 
-[data-role="file-volume"]
-  input[type="range"][aria-orientation="vertical"]::-webkit-slider-runnable-track {
-  height: var(--wr-volume-track-height) !important;
+input[type="range"][aria-orientation="vertical"]::-webkit-slider-runnable-track {
+  height: 6px !important;
   border-radius: 999px !important;
 }
 
-[data-role="file-volume"]
-  input[type="range"][aria-orientation="vertical"]::-moz-range-track {
-  height: var(--wr-volume-track-height) !important;
+input[type="range"][aria-orientation="vertical"]::-moz-range-track {
+  height: 6px !important;
   border-radius: 999px !important;
 }
 
-[data-role="file-volume"]
-  input[type="range"][aria-orientation="vertical"]::-webkit-slider-thumb {
+input[type="range"][aria-orientation="vertical"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: var(--wr-volume-thumb-size) !important;
-  height: var(--wr-volume-thumb-size) !important;
+  width: 14px !important;
+  height: 14px !important;
   border-radius: 999px !important;
   border: 2px solid #ffffff !important;
   background: var(--accent) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
-  margin-top: calc(
-    (var(--wr-volume-thumb-size) - var(--wr-volume-track-height)) / -2
-  ) !important;
+  margin-top: -4px !important;
 }
 
-[data-role="file-volume"]
-  input[type="range"][aria-orientation="vertical"]::-moz-range-thumb {
-  width: var(--wr-volume-thumb-size) !important;
-  height: var(--wr-volume-thumb-size) !important;
+input[type="range"][aria-orientation="vertical"]::-moz-range-thumb {
+  width: 14px !important;
+  height: 14px !important;
   border-radius: 999px !important;
   border: 2px solid #ffffff !important;
   background: var(--accent) !important;
