@@ -15,20 +15,20 @@ tests/**
 
 # Node modules (dependencies are bundled)
 node_modules/**
-.pnpm-store/**
+**/.pnpm-store/**
 pnpm-lock.yaml
 
 # Sample files
-sample/**
+**/sample/**
 
 # Git files
 .git/**
 .gitignore
-.github/**
+**/.github/**
 
 # Editor/IDE
 .vscode/**
-.cursor/**
+**/.cursor/**
 *.code-workspace
 
 # Build artifacts
