@@ -13,6 +13,9 @@ Built on top of [**WaveRoll**](https://github.com/crescent-stdio/wave-roll) - an
 
 - **Piano Roll Visualization**: View MIDI files as an interactive piano roll display powered by the [wave-roll](https://www.npmjs.com/package/wave-roll) library
 - **Audio Playback**: Play MIDI files directly in VS Code using Tone.js synthesis
+- **Multi-File Comparison**: Load multiple MIDI files (click **Add MIDI Files**) for side-by-side visualization
+- **Audio Reference Import**: Add a single audio file (`.wav`, `.mp3`, `.m4a`, `.ogg`) as a reference track (click **Add Audio File**)
+- **File-Based Highlighting**: Default highlight mode uses per-file colors to keep comparisons readable
 - **Tempo Control**: Adjust playback tempo with an interactive tempo control
 - **MIDI Export**: Export MIDI files with modified tempo settings
 - **Format Support**: Supports `.mid` and `.midi` file extensions
@@ -32,7 +35,8 @@ or [Open VSX](https://open-vsx.org/extension/crescent-stdio/wave-roll-studio)
 1. Open any `.mid` or `.midi` file in VS Code
 2. The file will automatically open in the WaveRoll Studio viewer
 3. Use the player controls to interact with the MIDI file
-4. Add multiple MIDI files for comparative visualization
+4. Click **Add MIDI Files** to layer additional MIDI files for comparison (drag-and-drop is disabled inside the webview)
+5. Click **Add Audio File** to load a reference audio track (`.wav`, `.mp3`, `.m4a`, `.ogg`)
 
 ## Controls
 

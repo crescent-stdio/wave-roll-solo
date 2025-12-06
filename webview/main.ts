@@ -111,13 +111,9 @@ function applyTrackRowAdjustments(root: HTMLElement): void {
 
       const noteBadge = Array.from(
         row.querySelectorAll<HTMLSpanElement>("span")
-      ).find(
-        (span) =>
-          (span.textContent ?? "").trim().endsWith("notes") &&
-          span.style.minWidth === "95px"
-      );
+      ).find((span) => (span.textContent ?? "").trim().endsWith("notes"));
       if (noteBadge) {
-        noteBadge.style.minWidth = "100px";
+        noteBadge.style.minWidth = "101px";
         noteBadge.style.marginRight = "10px";
       }
     });

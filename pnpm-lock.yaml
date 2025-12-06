@@ -15,8 +15,8 @@ importers:
         specifier: ^15.1.22
         version: 15.1.22
       wave-roll:
-        specifier: file:../wave-roll
-        version: file:../wave-roll
+        specifier: 0.4.0-next.0
+        version: 0.4.0-next.0
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -649,8 +649,8 @@ packages:
       yaml:
         optional: true
 
-  wave-roll@file:../wave-roll:
-    resolution: {directory: ../wave-roll, type: directory}
+  wave-roll@0.4.0-next.0:
+    resolution: {integrity: sha512-xr3Ifp2PUyzszLL1nm8C5Vasr04R0T8/+7henw+DhH6+kWkzjj7pgZtNKNUATkFJxfRR33S4+CCpSo06yompCw==}
 
 snapshots:
 
@@ -1099,7 +1099,7 @@ snapshots:
       '@types/node': 20.19.25
       fsevents: 2.3.3
 
-  wave-roll@file:../wave-roll:
+  wave-roll@0.4.0-next.0:
     dependencies:
       '@tonejs/midi': 2.0.28
       d3-scale: 4.0.2
