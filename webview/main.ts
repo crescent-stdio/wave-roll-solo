@@ -34,6 +34,7 @@ let playerInstance: WaveRollPlayerExtended | null = null;
 let currentBlobUrl: string | null = null;
 let appearanceChangeUnsubscribe: (() => void) | null = null;
 let pendingSettingsRequest: boolean = false;
+let trackRowAdjustObserver: MutationObserver | null = null;
 
 /**
  * Decodes a Base64 string to Uint8Array.
@@ -66,6 +67,75 @@ function revokeBlobUrl(): void {
   if (currentBlobUrl) {
     URL.revokeObjectURL(currentBlobUrl);
     currentBlobUrl = null;
+  }
+}
+
+/**
+ * Applies slight spacing/size tweaks to track rows to better align
+ * instrument/eye/volume/notes controls without touching wave-roll code.
+ */
+function applyTrackRowAdjustments(root: HTMLElement): void {
+  const adjust = () => {
+    const rows = Array.from(root.querySelectorAll<HTMLElement>("div")).filter(
+      (row) => {
+        const hasEye = row.querySelector(
+          'button[title="Toggle track visibility"]'
+        );
+        return (
+          row.style.display === "flex" &&
+          row.style.alignItems === "center" &&
+          row.style.gap === "8px" &&
+          row.style.padding === "2px 0px" &&
+          !!hasEye
+        );
+      }
+    );
+
+    rows.forEach((row) => {
+      row.style.gap = "8px";
+
+      const eyeBtn = row.querySelector<HTMLButtonElement>(
+        'button[title="Toggle track visibility"]'
+      );
+      if (eyeBtn) {
+        eyeBtn.style.marginLeft = "11px";
+        eyeBtn.style.marginRight = "3px";
+      }
+
+      const autoBtn = row.querySelector<HTMLButtonElement>(
+        'button[title^="Using"]'
+      );
+      if (autoBtn) {
+        autoBtn.style.marginRight = "8px";
+      }
+
+      const noteBadge = Array.from(
+        row.querySelectorAll<HTMLSpanElement>("span")
+      ).find(
+        (span) =>
+          (span.textContent ?? "").trim().endsWith("notes") &&
+          span.style.minWidth === "95px"
+      );
+      if (noteBadge) {
+        noteBadge.style.minWidth = "100px";
+        noteBadge.style.marginRight = "10px";
+      }
+    });
+  };
+
+  adjust();
+
+  if (trackRowAdjustObserver) {
+    trackRowAdjustObserver.disconnect();
+  }
+  trackRowAdjustObserver = new MutationObserver(() => adjust());
+  trackRowAdjustObserver.observe(root, { childList: true, subtree: true });
+}
+
+function teardownTrackRowAdjustments(): void {
+  if (trackRowAdjustObserver) {
+    trackRowAdjustObserver.disconnect();
+    trackRowAdjustObserver = null;
   }
 }
 
@@ -143,6 +213,9 @@ async function initializeWaveRollPlayer(
       ],
       playerOptions
     )) as unknown as WaveRollPlayerExtended;
+
+    // Align track-row controls (eye/volume/notes) without modifying wave-roll lib code
+    applyTrackRowAdjustments(waveRollContainer);
 
     // Setup file add request callback to use VS Code file dialog
     setupFileAddRequestListener();
@@ -455,6 +528,7 @@ function initialize(): void {
       playerInstance.dispose();
       playerInstance = null;
     }
+    teardownTrackRowAdjustments();
     revokeBlobUrl();
   });
 

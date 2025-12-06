@@ -23,8 +23,9 @@
   --loop-stripe-a: rgba(234, 179, 8, 0.8);
   --loop-stripe-b: rgba(217, 119, 6, 0.6);
   --loop-stripe-border: rgba(234, 179, 8, 0.95);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Reset and base styles */
@@ -42,8 +43,9 @@ body {
   overflow-x: hidden;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
@@ -127,4 +129,54 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #4c4c4c;
+}
+
+/* Match per-file/track volume sliders to master volume styling */
+[data-role="file-volume"] {
+  --wr-volume-track-height: 6px;
+  --wr-volume-thumb-size: 14px;
+}
+
+[data-role="file-volume"] input[type="range"][aria-orientation="vertical"] {
+  width: 100px !important;
+  height: var(--wr-volume-track-height) !important;
+  border-radius: 999px !important;
+  background-clip: padding-box !important;
+}
+
+[data-role="file-volume"]
+  input[type="range"][aria-orientation="vertical"]::-webkit-slider-runnable-track {
+  height: var(--wr-volume-track-height) !important;
+  border-radius: 999px !important;
+}
+
+[data-role="file-volume"]
+  input[type="range"][aria-orientation="vertical"]::-moz-range-track {
+  height: var(--wr-volume-track-height) !important;
+  border-radius: 999px !important;
+}
+
+[data-role="file-volume"]
+  input[type="range"][aria-orientation="vertical"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--wr-volume-thumb-size) !important;
+  height: var(--wr-volume-thumb-size) !important;
+  border-radius: 999px !important;
+  border: 2px solid #ffffff !important;
+  background: var(--accent) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+  margin-top: calc(
+    (var(--wr-volume-thumb-size) - var(--wr-volume-track-height)) / -2
+  ) !important;
+}
+
+[data-role="file-volume"]
+  input[type="range"][aria-orientation="vertical"]::-moz-range-thumb {
+  width: var(--wr-volume-thumb-size) !important;
+  height: var(--wr-volume-thumb-size) !important;
+  border-radius: 999px !important;
+  border: 2px solid #ffffff !important;
+  background: var(--accent) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
 }
