@@ -3,7 +3,7 @@
   "displayName": "[DEPRECATED] WaveRoll Solo",
   "description": "⚠️ DEPRECATED - Use WaveRoll Studio instead. VS Code Extension for MIDI Piano-Roll Visualization and Playback",
   "publisher": "crescent-stdio",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "icon": "icon.jpg",
   "repository": {
     "type": "git",
